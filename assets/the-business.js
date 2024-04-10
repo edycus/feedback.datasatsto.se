@@ -80,7 +80,6 @@
 
             if (document.location.pathname.substring(0, 7)=='/event/') {
                 // /event/000000
-                console.log('eventId='+encodeURIComponent(document.location.pathname.split('/')[2]));
                 xhr.send('eventId='+encodeURIComponent(document.location.pathname.split('/')[2]));
             } else {
                 // /sessions?responseId=0000000000
@@ -99,8 +98,152 @@
         }
 
 
+        // If we're on the admin page, show the search field:
+        //---------------------------------------------------------------------
+        if (docPath.split('/')[0]=='presenter-report') {
+            renderPresenterReport(docPath.split('/')[1], docPath.split('/')[2]);
+        }
+
+
     }
 
+
+
+
+
+/*
+ *
+ *
+ * ----------------------------------------------------------------------------
+ * Speaker page.
+ * ----------------------------------------------------------------------------
+ * 
+ * 
+ */
+
+function renderPresenterReport(eventId, presenterSecret) {
+    document.body.classList.add('presenter-report');
+
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/presenter-report');
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    xhr.onload = function() {
+        if (xhr.status==200) {
+            const blob=JSON.parse(xhr.response);
+
+            document.title='Your session feedback for '+blob.name;
+
+            for (const session of blob.sessions) {
+                console.log(session);
+
+                // The header for this session:
+                var header=document.createElement('div');
+                header.classList.add('header');
+
+                var title=document.createElement('span');
+                title.classList.add('title');
+                title.innerText=session.title;
+                header.appendChild(title);
+
+                document.body.appendChild(header);
+
+                // Loop through all of the questions
+                for (const question of blob.questions) {
+                    var div=document.createElement('div');
+                    div.classList.add('report');
+
+                    // These are all the responses (radio/checkbox/text) to this question
+                    const responseCollection=session.questions.filter(q => q.questionId==question.questionId)[0];
+
+                    // This is the number of responses
+                    var responseCount=0;
+                    if (responseCollection.answers) {
+                        responseCount=responseCollection.answers.reduce((agg, curr) => agg+curr.sessionResponses, 0);
+                    }
+
+                    if (responseCount>0 || responseCollection.textAnswers) {
+                        var qtitle=document.createElement('div');
+                        qtitle.classList.add('title');
+                        qtitle.innerText=question.text;
+                        div.appendChild(qtitle);
+                    }
+
+                    if (responseCount>0 && ['radio', 'checkbox'].indexOf(question.type)>=0) {
+
+                        var span=document.createElement('span');
+                        span.classList.add('response-count');
+                        span.innerText=responseCount+' response'+(responseCount>1 ? 's' : '');
+                        div.appendChild(span);
+
+                        const graphDefinition={
+                            horizontalSpacing: 0.75,
+                            xAxis: false,
+                            bars: []
+                        };
+
+                        var maxSessionResponses=responseCollection.answers.reduce((agg, curr) => (curr.sessionResponses>agg ? curr.sessionResponses : agg), 0);
+                        var maxEventResponses=responseCollection.answers.reduce((agg, curr) => (curr.eventResponses>agg ? curr.eventResponses : agg), 0);
+                        
+                        var annotations=document.createElement('div');
+                        annotations.classList.add('annotations');
+
+                        // Loop through all the response options for this question:
+                        for (option of question.options) {
+                            const response=responseCollection.answers.filter(o => o.optionId==option.optionId)[0];
+
+                            graphDefinition.bars.push({
+                                x: option.ordinal,
+                                y: response.eventResponses*maxSessionResponses/(maxEventResponses || 1)*0.75,
+                                class: (option.css || '') + ' event-average',
+                                shift: '2%'
+                            });
+
+                            graphDefinition.bars.push({
+                                x: option.ordinal,
+                                y: response.sessionResponses,
+                                class: option.css,
+                                tooltip: option.annotation
+                            });
+
+                            if (option.annotation) {
+                                var annotation=document.createElement('span');
+                                annotation.classList.add('annotation');
+                                annotation.innerText=option.annotation;
+                                annotations.appendChild(annotation);
+                            }
+
+                        }
+                        div.appendChild(graphObject(graphDefinition));
+                        if (annotations.childNodes.length>0) {
+                            div.appendChild(annotations);
+                        }
+
+                    }
+
+                    if (responseCollection.textAnswers) {
+                        for (textAnswer of responseCollection.textAnswers) {
+                            var textResponse=document.createElement('div');
+                            textResponse.classList.add('text-response');
+                            textResponse.innerText=textAnswer.text;
+                            div.appendChild(textResponse);
+                        }
+                    }
+
+                    if (div.childNodes.length>0) {
+                        document.body.appendChild(div);
+                    }
+                }
+            }
+
+        }
+    }
+
+    xhr.send('eventId='+encodeURIComponent(document.location.pathname.split('/')[2])+'&'+
+             'presenterSecret='+encodeURIComponent(document.location.pathname.split('/')[3]));
+
+}
 
 
 
