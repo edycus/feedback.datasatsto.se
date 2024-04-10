@@ -133,6 +133,13 @@ function renderPresenterReport(eventId, presenterSecret) {
         if (xhr.status==200) {
             const blob=JSON.parse(xhr.response);
 
+            if (blob.css) {
+                var l=document.createElement('link');
+                l.rel='stylesheet';
+                l.href=blob.css;
+                document.head.appendChild(l);
+            }
+
             document.title='Your session feedback for '+blob.name;
 
             for (const session of blob.sessions) {

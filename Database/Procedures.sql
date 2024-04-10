@@ -1031,6 +1031,7 @@ IF (NOT EXISTS (SELECT NULL
 
 SELECT (
         SELECT e.[Name] AS [name],
+               e.CSS AS css,
             (SELECT q.Question_ID AS questionId,
                     q.Display_order AS displayOrder,
                     q.Question AS [text],
