@@ -101,7 +101,7 @@
         // If we're on the admin page, show the search field:
         //---------------------------------------------------------------------
         if (docPath.split('/')[0]=='presenter-report') {
-            renderPresenterReport(docPath.split('/')[1], docPath.split('/')[2]);
+            renderPresenterReport();
         }
 
 
@@ -121,7 +121,7 @@
  * 
  */
 
-function renderPresenterReport(eventId, presenterSecret) {
+function renderPresenterReport() {
     document.body.classList.add('presenter-report');
 
 
