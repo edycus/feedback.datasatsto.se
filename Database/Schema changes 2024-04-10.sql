@@ -72,6 +72,29 @@ SELECT (
                      FOR JSON PATH) AS presenters,
 
                     (SELECT q.Question_ID AS questionId,
+
+                            (SELECT AVG(1.*ao.Percent_value)
+                             FROM Feedback.Answer_options AS ao
+                             INNER JOIN Feedback.Response_Answers AS ra ON ao.Answer_option_ID=ra.Answer_option_ID
+                             INNER JOIN Feedback.Responses AS r ON ra.Response_ID=r.Response_ID
+                             WHERE ao.Question_ID=q.Question_ID
+                               AND r.Session_ID=s.Session_ID
+                               AND ao.Percent_value IS NOT NULL) AS sessionAveragePercent,
+
+                            (SELECT AVG(1.*ao.Percent_value)
+                             FROM Feedback.Answer_options AS ao
+                             INNER JOIN Feedback.Response_Answers AS ra ON ao.Answer_option_ID=ra.Answer_option_ID
+                             INNER JOIN Feedback.Responses AS r ON ra.Response_ID=r.Response_ID
+                             WHERE ao.Question_ID=q.Question_ID
+                               AND ao.Percent_value IS NOT NULL) AS eventAveragePercent,
+
+                            (SELECT COUNT(DISTINCT r.Response_ID)
+                             FROM Feedback.Answer_options AS ao
+                             INNER JOIN Feedback.Response_Answers AS ra ON ao.Answer_option_ID=ra.Answer_option_ID
+                             INNER JOIN Feedback.Responses AS r ON ra.Response_ID=r.Response_ID
+                             WHERE r.Session_ID=s.Session_ID
+                               AND ao.Question_ID=q.Question_ID) AS sessionResponses,
+
                             (SELECT ao.Answer_option_ID AS optionId,
                                     COUNT((CASE WHEN r.Session_ID=x.Session_ID THEN ra.Response_ID END)) AS sessionResponses,
                                     1.*COUNT(ra.Response_ID)/NULLIF(SUM(COUNT(ra.Response_ID)) OVER (PARTITION BY ao.Question_ID), 0) AS eventResponses

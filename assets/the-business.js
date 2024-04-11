@@ -142,8 +142,23 @@ function renderPresenterReport() {
 
             document.title='Your session feedback for '+blob.name;
 
+            // The header for this session:
+            var legend=document.createElement('div');
+            legend.classList.add('header');
+            legend.classList.add('report-legend');
+
+            var legendText=document.createElement('div');
+            legendText.innerText='Report legend';
+            legendText.classList.add('title');
+            legend.appendChild(legendText);
+
+            var legendImg=document.createElement('img');
+            legendImg.src='/report-legend.png';
+            legend.appendChild(legendImg);
+
+            document.body.appendChild(legend);
+
             for (const session of blob.sessions) {
-                console.log(session);
 
                 // The header for this session:
                 var header=document.createElement('div');
@@ -155,6 +170,7 @@ function renderPresenterReport() {
                 header.appendChild(title);
 
                 document.body.appendChild(header);
+                var hasResponses=false;
 
                 // Loop through all of the questions
                 for (const question of blob.questions) {
@@ -165,23 +181,26 @@ function renderPresenterReport() {
                     const responseCollection=session.questions.filter(q => q.questionId==question.questionId)[0];
 
                     // This is the number of responses
-                    var responseCount=0;
-                    if (responseCollection.answers) {
-                        responseCount=responseCollection.answers.reduce((agg, curr) => agg+curr.sessionResponses, 0);
-                    }
-
-                    if (responseCount>0 || responseCollection.textAnswers) {
+                    if (responseCollection.sessionResponses>0 || responseCollection.textAnswers) {
                         var qtitle=document.createElement('div');
                         qtitle.classList.add('title');
                         qtitle.innerText=question.text;
                         div.appendChild(qtitle);
                     }
 
-                    if (responseCount>0 && ['radio', 'checkbox'].indexOf(question.type)>=0) {
+                    if (responseCollection.sessionResponses>0 && ['radio', 'checkbox'].indexOf(question.type)>=0) {
+
+                        hasResponses=true;
 
                         var span=document.createElement('span');
                         span.classList.add('response-count');
-                        span.innerText=responseCount+' response'+(responseCount>1 ? 's' : '');
+                        span.innerText=responseCollection.sessionResponses+' response'+(responseCollection.sessionResponses>1 ? 's' : '');
+                        if (responseCollection.sessionAveragePercent!==undefined) {
+                            span.innerText+=', '+responseCollection.sessionAveragePercent.toFixed(0)+'% score';
+                            if (responseCollection.eventAveragePercent!==undefined) {
+                                span.innerText+=', event average '+responseCollection.eventAveragePercent.toFixed(0)+'%';
+                            }
+                        }
                         div.appendChild(span);
 
                         const graphDefinition={
@@ -230,6 +249,8 @@ function renderPresenterReport() {
                     }
 
                     if (responseCollection.textAnswers) {
+                        hasResponses=true;
+
                         for (textAnswer of responseCollection.textAnswers) {
                             var textResponse=document.createElement('div');
                             textResponse.classList.add('text-response');
@@ -241,6 +262,13 @@ function renderPresenterReport() {
                     if (div.childNodes.length>0) {
                         document.body.appendChild(div);
                     }
+                }
+
+                if (!hasResponses) {
+                    var div=document.createElement('div');
+                    div.classList.add('report');
+                    div.innerText='No responses';
+                    document.body.appendChild(div);
                 }
             }
 
