@@ -105,3 +105,33 @@ SELECT (
         FOR JSON AUTO, WITHOUT_ARRAY_WRAPPER) AS Report_blob;
 
 GO
+
+-------------------------------------------------------------------------------
+---
+--- Retrieve presenters for an event
+---
+-------------------------------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE Feedback.Admin_Event_Presenters
+    @Event_secret       uniqueidentifier
+AS
+
+SET NOCOUNT ON;
+
+SELECT (
+    SELECT p.[Name] AS [name],
+           e.Event_ID AS eventId,
+           p.Presenter_secret AS presenterSecret
+    FROM Feedback.[Events] AS e
+    CROSS JOIN Feedback.Presenters AS p
+    WHERE e.Event_secret=@Event_secret
+      AND p.Presenter_ID IN (
+        SELECT sp.Presented_by_ID
+        FROM Feedback.[Sessions] AS s
+        INNER JOIN Feedback.Session_presenters AS sp ON s.Session_ID=sp.Session_ID
+        WHERE e.Event_ID=s.Event_ID)
+    ORDER BY p.[Name]
+    FOR JSON PATH
+) AS Presenter_blob;
+
+GO

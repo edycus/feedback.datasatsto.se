@@ -285,6 +285,19 @@ app.post('/api/get-admin-sessions', async function (req, res, next) {
 
 });
 
+app.post('/api/get-admin-presenters', async function (req, res, next) {
+
+    var eventSecret=req.body.eventSecret.trim();
+    var blob;
+    try {
+        blob=await adminEventPresenters(eventSecret);
+        res.status(200).send(blob);
+    } catch(e) {
+        res.status(401).send();
+    }
+
+});
+
 
 
 
@@ -822,6 +835,23 @@ async function adminEventInfo(eventSecret) {
             function(recordset) {
                 try {
                     var blob = JSON.parse(recordset.data[0].Event_blob);
+                    resolve(blob);
+                } catch(e) {
+                    reject();
+                }
+            });
+        });
+}
+
+async function adminEventPresenters(eventSecret) {
+
+    return new Promise((resolve, reject) => {
+        cannedSql.sqlQuery(connectionString,
+            'EXECUTE Feedback.Admin_Event_Presenters @Event_secret=@eventSecret;',
+            [ { "name": 'eventSecret', "type": cannedSql.Types.UniqueIdentifier, "value": eventSecret } ],
+            function(recordset) {
+                try {
+                    var blob = JSON.parse(recordset.data[0].Presenter_blob);
                     resolve(blob);
                 } catch(e) {
                     reject();

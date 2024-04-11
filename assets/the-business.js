@@ -444,6 +444,68 @@ function renderPresenterReport() {
                     document.body.appendChild(div);
                 });
 
+                loadAdminSpeakers(eventSecret);
+
+            } else {
+                showStatus('But there was a problem.', 'bad');
+            }
+        }
+
+        xhr.send('eventSecret='+encodeURIComponent(eventSecret));
+    }
+
+
+    function loadAdminSpeakers(eventSecret) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/get-admin-presenters');
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        xhr.onload = function() {
+            if (xhr.status==200) {
+                var blob;
+                try {
+                    blob=JSON.parse(xhr.response);
+                    showStatus('Authenticated.', 'good');
+                } catch(e) {
+                    showStatus('That doesn\'t look right.', 'bad');
+                    return;
+                }
+
+                var div=document.createElement('div');
+                div.classList.add('header');
+
+                // Header
+                var span=document.createElement('span');
+                span.classList.add('title');
+                span.innerText='Speaker report URLs';
+                div.appendChild(span);
+
+                for (speaker of blob) {
+                    // And one item for each speaker
+                    var p=document.createElement('p');
+
+                    var span=document.createElement('span');
+                    span.innerText=speaker.name+': ';
+                    p.appendChild(span);
+
+                    var a=document.createElement('a');
+                    a.innerText=document.location.protocol.replace(':', '')+'://'+document.location.host+'/presenter-report/'+speaker.eventId+'/'+speaker.presenterSecret;
+                    a.href=document.location.protocol.replace(':', '')+'://'+document.location.host+'/presenter-report/'+speaker.eventId+'/'+speaker.presenterSecret;
+                    a.target='_new';
+                    a.addEventListener('click', copyItemToClipboard);
+                    p.appendChild(a);
+
+                    div.appendChild(p);
+                }
+
+                document.body.appendChild(div);
+
+
+
+
+
+
+
             } else {
                 showStatus('But there was a problem.', 'bad');
             }
