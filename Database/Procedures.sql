@@ -1065,6 +1065,7 @@ SELECT (
                      FOR JSON PATH) AS presenters,
 
                     (SELECT q.Question_ID AS questionId,
+
                             (SELECT AVG(1.*ao.Percent_value)
                              FROM Feedback.Answer_options AS ao
                              INNER JOIN Feedback.Response_Answers AS ra ON ao.Answer_option_ID=ra.Answer_option_ID
