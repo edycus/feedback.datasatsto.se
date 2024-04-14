@@ -196,9 +196,9 @@ function renderPresenterReport() {
                         span.classList.add('response-count');
                         span.innerText=responseCollection.sessionResponses+' response'+(responseCollection.sessionResponses>1 ? 's' : '');
                         if (responseCollection.sessionAveragePercent!==undefined) {
-                            span.innerText+=', '+responseCollection.sessionAveragePercent.toFixed(0)+'% score';
+                            span.innerText+=', this session: '+responseCollection.sessionAveragePercent.toFixed(0)+'%';
                             if (responseCollection.eventAveragePercent!==undefined) {
-                                span.innerText+=', event average '+responseCollection.eventAveragePercent.toFixed(0)+'%';
+                                span.innerText+=', event average: '+responseCollection.eventAveragePercent.toFixed(0)+'%';
                             }
                         }
                         div.appendChild(span);
