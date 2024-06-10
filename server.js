@@ -635,7 +635,7 @@ function httpHeaders(res) {
 
     // Limits use of external script/css/image resources
     if (app.settings.env!='development') {
-        res.header('Content-Security-Policy', "default-src 'self'; style-src 'self' fonts.googleapis.com; script-src 'self'; font-src fonts.gstatic.com");
+        res.header('Content-Security-Policy', "default-src 'self'; style-src 'self' fonts.googleapis.com; script-src 'self' https://static.cloudflareinsights.com; font-src fonts.gstatic.com");
     }
 
     // Don't allow this site to be embedded in a frame; helps mitigate clickjacking attacks
